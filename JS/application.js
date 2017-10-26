@@ -13,6 +13,15 @@ class Queue {
     };
 }
 
+function updateInfo() {
+    var openedGrid = $('.board > .opened-box').length;
+    var flag = $('.board .fa-flag').length;
+    var bomb = $('.board .fa-bomb.hide-icon').length;
+    $('.info-bar .info-opened-box').closest('.top-icon').find('span:last').text(openedGrid);
+    $('.info-bar .fa-flag').closest('.top-icon').find('span:last').text(flag);
+    $('.info-bar .fa-bomb').closest('.top-icon').find('span:last').text(bomb);
+}
+
 /*bfs implementation similar to https://www.khanacademy.org/computing/computer-science/algorithms/breadth-first-search/p/challenge-implement-breadth-first-search*/
 function bfs(graph, id) {
     var bfsInfo = [];
@@ -75,11 +84,14 @@ function findNeighbours() {
     var listOfNeighboursArray = [];
     for(var i = 0; i < 64; i++) {
         var neighboursArray = [];
-        if($('#' + i).children().length == 0) {
+        if($('#' + i).children().length == 0 || $('#' + i).children('i:last').hasClass('')) {
             var position = filterEdgeGrid(i);
 
             for(var j = 0; j < 8; j++) {
-                if(position[j] >= 0 && ( $('#' + position[j]).children().length == 0 || $('#' + position[j]).children('p').length > 0)) {
+                if( position[j] >= 0 && ( $('#' + position[j]).children().length == 0 ||
+                ($('#' + position[j]).children('i:last').hasClass('')) || 
+                $('#' + position[j]).children('p').length > 0) &&
+                !($('#' + position[j]).children('i:last').hasClass('fa-flag')) ) {
                     neighboursArray.push(position[j]);
                 }
             }
@@ -128,7 +140,6 @@ $(document).ready(function() {
             //console.log(i + ':' + position[j]);
             if(position[j] >= 0) {
                 if($('#' + position[j]).children('i.fa-bomb').length > 0) {
-                    //console.log('yes!');
                     counter++;
                 }
             }
@@ -139,30 +150,40 @@ $(document).ready(function() {
     }
 
     var neighboursList = findNeighbours();
+    updateInfo();
 
     //player click the box
     $('.board').on('click', '.box', function() {
-        $(this).removeClass('box').addClass('opened-box');
-        $(this).children().removeClass('hide-icon').addClass('show-icon');
-        if($(this).children().length == 0) {
-            var openList = bfs(neighboursList, this.id);
-            for(var i = 0; i < openList.length; i++) {
-                //console.log(openList[i].distance + ' ' + openList[i].parent);
-                if(openList[i].distance != null && $('#' + i).hasClass('box')) {
-                    $('#' + i).removeClass('box').addClass('opened-box');
-                    $('#' + i).children().removeClass('hide-icon').addClass('show-icon');
+        if(!($(this).children().hasClass('fa-flag'))) {
+            
+            if($(this).children().length == 0 || ($(this).children().length == 1 && $(this).children('i:last').hasClass(''))) {
+                var openList = bfs(neighboursList, this.id);
+                for(var i = 0; i < openList.length; i++) {
+                    //console.log(openList[i].distance + ' ' + openList[i].parent);
+                    if(openList[i].distance != null && $('#' + i).hasClass('box')) {
+                        $('#' + i).removeClass('box').addClass('opened-box');
+                        $('#' + i).children().removeClass('hide-icon').addClass('show-icon');
+                    }
                 }
             }
+            $(this).removeClass('box').addClass('opened-box');
+            $(this).children().removeClass('hide-icon').addClass('show-icon');
+            updateInfo();
         }
-        
         //when one box is opened, it should propagate to related one
         //for empty box, it should open all the empty one around it until it hit a numbered box
-        
     });
 
     //when player right click
     $('.board').on('contextmenu', '.box', function() {
-        $(this).toggleClass('fa fa-flag fa-2x hide-icon');
+        if($(this).children().length == 0 || ($(this).children().length == 1 && $(this).find('p').length) ||
+            ($(this).children().length == 1 && $(this).find('i:last').hasClass('fa-bomb'))) {
+            $(this).append('<i></i>').find('i:last').toggleClass('fa fa-flag fa-2x');
+        } else if ($(this).children().length == 2 || ($(this).children().length == 1 && !($(this).find('i').hasClass('fa-bomb')))) {
+            $(this).find('i:last').toggleClass('fa fa-flag fa-2x');
+        }
+        neighboursList = findNeighbours();
+        updateInfo();
         //prevent default menu appear
         return false;
     });

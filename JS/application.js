@@ -1,3 +1,10 @@
+/* 
+ * A Queue object for arrays.
+ * methods:
+ * [queueOdj].enqueue(item) - enqueue @param {obj} item to the end of the queue array
+ * [queueObj].dequeue() - dequeue item from the beginning of the queue array, @return {obj} item
+ * [queueObj].isEmpty() - check whether the queue is empty or not, @return {bool} true if it is empty
+ */
 class Queue {
     constructor() {
         this.q = [];
@@ -13,6 +20,10 @@ class Queue {
     };
 }
 
+/*
+ * update the information of the info-display bar according to the current board.
+ * including how many grids are opened, flags player setted and unopened bomb
+ */
 function updateInfo() {
     var openedGrid = $('.board > .opened-box').length;
     var flag = $('.board .fa-flag').length;
@@ -22,7 +33,11 @@ function updateInfo() {
     $('.info-bar .fa-bomb').closest('.top-icon').find('span:last').text(bomb);
 }
 
-/*bfs implementation similar to https://www.khanacademy.org/computing/computer-science/algorithms/breadth-first-search/p/challenge-implement-breadth-first-search*/
+/* bfs implementation similar to https://www.khanacademy.org/computing/computer-science/algorithms/breadth-first-search/p/challenge-implement-breadth-first-search
+ * @param {array} graph
+ * @param {number} id
+ * @return {array} Array of objects for each id in the form of [distance:_, parent:_]
+ */
 function bfs(graph, id) {
     var bfsInfo = [];
 
@@ -51,28 +66,37 @@ function bfs(graph, id) {
     return bfsInfo;
 }
 
-function filterEdgeGrid(i) {
+/*
+ * calculate every grid around and 
+ * perform filtering to the edge of around all the grid,
+ * so the grids of the edge will not be included inside the 8 by 8 board.
+ * For example, around grid id 0, left and top should be excluded
+ * @param {number} id - id of the grid on the board
+ * @return {array} position - array of 8 ids the input id in format of numbers
+ */
+function filterEdgeGrid(id) {
     //nw, n, ne, e, se, s, sw, w
-    var position = [i-9, i-8, i-7, i+1, i+9, i+8, i+7, i-1];
+    var position = [id-9, id-8, id-7, id+1, id+9, id+8, id+7, id-1];
     
-    //position filtering (around the edge)
-    //size of the board 8x8 so we use 8
-    if(i % 8 == 0) {
+    /* position filtering (around the edge)
+     * size of the board 8x8 so we use 8
+     */
+    if(id % 8 == 0) { // left
         position[0] = -1;
         position[7] = -1;
         position[6] = -1;
     }
-    if((i+1) % 8 == 0) {
+    if((id+1) % 8 == 0) { // right
         position[2] = -1;
         position[3] = -1;
         position[4] = -1;
     }
-    if(i >= 0 && i <= 7) {
+    if(id >= 0 && id <= 7) { // top
         position[0] = -1;
         position[1] = -1;
         position[2] = -1;
     }
-    if(i >= 56 && i <= 63) {
+    if(id >= 56 && id <= 63) { // bottom
         position[6] = -1;
         position[5] = -1;
         position[4] = -1;
@@ -80,6 +104,11 @@ function filterEdgeGrid(i) {
     return position;
 }
 
+/* 
+ * Perform search around each grid id to find their neihhbours, if the the grid is empty.
+ * @reutrn {array} listOfNeighboursArray - array of 64 with each indicate who are their empty 
+ * neighbours if they are empty.
+ */
 function findNeighbours() {
     var listOfNeighboursArray = [];
     for(var i = 0; i < 64; i++) {
@@ -99,6 +128,10 @@ function findNeighbours() {
         listOfNeighboursArray.push(neighboursArray.sort(function(a, b){return a - b;}));
     }
     return listOfNeighboursArray;
+}
+
+function timer() {
+    
 }
 
 $(document).ready(function() {
@@ -125,7 +158,7 @@ $(document).ready(function() {
         }
     }
 
-    //check around each box and place number in there
+    //check each box around and place a number in there if there are related bombs around
     for(var i = 0; i < 64; i++) {
         //if the grid has the bomb
         if($('#' + i).children('i.fa-bomb').length > 0)
@@ -152,8 +185,14 @@ $(document).ready(function() {
     var neighboursList = findNeighbours();
     updateInfo();
 
-    //player click the box
+    //Listening when player click the box
     $('.board').on('click', '.box', function() {
+        /*
+         * if the timer has not started yet, start the timer
+         * use function call
+         */
+
+
         if(!($(this).children().hasClass('fa-flag'))) {
             
             if($(this).children().length == 0 || ($(this).children().length == 1 && $(this).children('i:last').hasClass(''))) {
@@ -170,11 +209,9 @@ $(document).ready(function() {
             $(this).children().removeClass('hide-icon').addClass('show-icon');
             updateInfo();
         }
-        //when one box is opened, it should propagate to related one
-        //for empty box, it should open all the empty one around it until it hit a numbered box
     });
 
-    //when player right click
+    //Listening when player right click, the grid is flagged if it isn't opened
     $('.board').on('contextmenu', '.box', function() {
         if($(this).children().length == 0 || ($(this).children().length == 1 && $(this).find('p').length) ||
             ($(this).children().length == 1 && $(this).find('i:last').hasClass('fa-bomb'))) {
@@ -182,6 +219,8 @@ $(document).ready(function() {
         } else if ($(this).children().length == 2 || ($(this).children().length == 1 && !($(this).find('i').hasClass('fa-bomb')))) {
             $(this).find('i:last').toggleClass('fa fa-flag fa-2x');
         }
+        // Since the flagged grid will not be opened by propagation, we have to calculate
+        // the new neighbours of each grid
         neighboursList = findNeighbours();
         updateInfo();
         //prevent default menu appear

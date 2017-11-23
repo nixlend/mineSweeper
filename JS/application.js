@@ -130,30 +130,12 @@ function findNeighbours() {
     return listOfNeighboursArray;
 }
 
-function padZero( val ) {
-    if(val <= 9)
-        val = "0" + val;
-    return val;
-} 
+function setup() {
 
-/*
- * Timer should start when player press any grid; stopped when player opened any bomb;
- * reset to all zero when player press restart. 
- */
-function runTimer(time) {
-    second = padZero(time % 60);
-    minute = padZero(parseInt(time/60));
-    $('#timing').text(minute + ":" + second);
-}
-
-$(document).ready(function() {
     var mines = [];
-    var timer = 0;
-    var interval;
-    var timeRunning = false;
-    
-    //generate mines: 7
-    for(var i = 0; i < 7; i++) {
+
+     //generate mines: 7
+     for(var i = 0; i < 7; i++) {
         let ran = Math.floor(Math.random()*64);
         mines.push(ran);
     }
@@ -199,6 +181,36 @@ $(document).ready(function() {
 
     var neighboursList = findNeighbours();
     updateInfo();
+
+    return [mines, neighboursList];
+}
+
+function padZero( val ) {
+    if(val <= 9)
+        val = "0" + val;
+    return val;
+} 
+
+/*
+ * Timer should start when player press any grid; stopped when player opened any bomb;
+ * reset to all zero when player press restart. 
+ */
+function runTimer(time) {
+    second = padZero(time % 60);
+    minute = padZero(parseInt(time/60));
+    $('#timing').text(minute + ":" + second);
+}
+
+$(document).ready(function() {
+    var mines = [];
+    var timer = 0;
+    var interval;
+    var timeRunning = false;
+    var neighboursList;
+    
+    var starting = setup();
+    mines = starting[0];
+    neighboursList = starting[1];
 
     //Listening when player click the box
     $('.board').on('click', '.box', function() {
@@ -251,6 +263,19 @@ $(document).ready(function() {
         updateInfo();
         //prevent default menu appear
         return false;
+    });
+
+    // player click restart to reset the board
+    $('.restart').on('click', function(){
+        timer = 0;
+        interval = null;
+        timeRunning = false;
+        $('#timing').text('00:00:00');
+        $('.restart').css('display', 'none');
+        $('.board').empty();
+        starting = setup();
+        mines = starting[0];
+        neighboursList = starting[1];
     });
 
 });

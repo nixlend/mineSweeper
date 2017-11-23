@@ -238,7 +238,7 @@ $(document).ready(function() {
          */
         if(!timeRunning) {
             timeRunning = true;
-            interval = setInterval(function() {runTimer(timer++)}, 1000);
+            interval = setInterval(function() {runTimer(++timer)}, 1000);
         }
 
         // player opened a non-flagged grid

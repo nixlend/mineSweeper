@@ -75,7 +75,7 @@
 .restart {
     border: 0;
     padding: 1em 3em;
-    background: rgb(248, 131, 131);
+    background: #f88383;
     margin-top: 1em;
     cursor: pointer;
     display: none;

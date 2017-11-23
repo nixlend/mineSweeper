@@ -27,7 +27,7 @@ class Queue {
 function updateInfo() {
     var openedGrid = $('.board > .opened-box').length;
     var flag = $('.board .fa-flag').length;
-    var bomb = $('.board .fa-bomb.hide-icon').length;
+    var bomb = $('.board .fa-bomb.hide-icon').length - flag;
     $('.info-bar .info-opened-box').closest('.top-icon').find('span:last').text(openedGrid);
     $('.info-bar .fa-flag').closest('.top-icon').find('span:last').text(flag);
     $('.info-bar .fa-bomb').closest('.top-icon').find('span:last').text(bomb);
@@ -130,6 +130,20 @@ function findNeighbours() {
     return listOfNeighboursArray;
 }
 
+function isWon() {
+    var openedGrid = $('.board > .opened-box').length;
+    var flag = $('.board .fa-flag').length;
+    var bomb = $('.board .fa-bomb.hide-icon').length - flag;
+    if (openedGrid == 57 && flag == 7 && bomb == 0) {
+        // display won message
+        $('.restart').text('Congratulations, you won! Play again');
+        $('.restart').css({
+            'display': 'inline-block',
+            'background': '#84f883'
+        });
+    }    
+}
+
 function setup() {
 
     var mines = [];
@@ -137,6 +151,10 @@ function setup() {
      //generate mines: 7
      for(var i = 0; i < 7; i++) {
         let ran = Math.floor(Math.random()*64);
+        if(mines.indexOf(ran) !== -1) {
+            i--;
+            continue;
+        }
         mines.push(ran);
     }
 
@@ -247,6 +265,7 @@ $(document).ready(function() {
             $(this).children().removeClass('hide-icon').addClass('show-icon');
             updateInfo();
         }
+        isWon();
     });
 
     //Listening when player right click, the grid is flagged if it isn't opened
@@ -261,6 +280,7 @@ $(document).ready(function() {
         // the new neighbours of each grid
         neighboursList = findNeighbours();
         updateInfo();
+        isWon();
         //prevent default menu appear
         return false;
     });
@@ -270,8 +290,12 @@ $(document).ready(function() {
         timer = 0;
         interval = null;
         timeRunning = false;
-        $('#timing').text('00:00:00');
-        $('.restart').css('display', 'none');
+        $('#timing').text('00:00');
+        $('.restart').text('You lose, play again');
+        $('.restart').css({
+            'display': 'none',
+            'background': '#f88383'
+        });
         $('.board').empty();
         starting = setup();
         mines = starting[0];

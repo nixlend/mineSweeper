@@ -71,3 +71,12 @@
 .board > .fa-bomb.hide-icon {
     background-color: red;
 }
+
+.restart {
+    border: 0;
+    padding: 1em 3em;
+    background: rgb(248, 131, 131);
+    margin-top: 1em;
+    cursor: pointer;
+    display: none;
+}

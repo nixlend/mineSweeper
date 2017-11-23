@@ -130,12 +130,27 @@ function findNeighbours() {
     return listOfNeighboursArray;
 }
 
-function timer() {
-    
+function padZero( val ) {
+    if(val <= 9)
+        val = "0" + val;
+    return val;
+} 
+
+/*
+ * Timer should start when player press any grid; stopped when player opened any bomb;
+ * reset to all zero when player press restart. 
+ */
+function runTimer(time) {
+    second = padZero(time % 60);
+    minute = padZero(parseInt(time/60));
+    $('#timing').text(minute + ":" + second);
 }
 
 $(document).ready(function() {
     var mines = [];
+    var timer = 0;
+    var interval;
+    var timeRunning = false;
     
     //generate mines: 7
     for(var i = 0; i < 7; i++) {
@@ -191,10 +206,21 @@ $(document).ready(function() {
          * if the timer has not started yet, start the timer
          * use function call
          */
+        if(!timeRunning) {
+            timeRunning = true;
+            interval = setInterval(function() {runTimer(timer++)}, 1000);
+        }
 
-
+        // player opened a non-flagged grid
         if(!($(this).children().hasClass('fa-flag'))) {
             
+            // player has opened a bomb, display the replay and stop the counter
+            if($(this).children().hasClass('fa-bomb')) {
+                clearInterval(interval);
+                $('.restart').css("display", "inline-block");
+            }
+
+            // player has opened an empty grid
             if($(this).children().length == 0 || ($(this).children().length == 1 && $(this).children('i:last').hasClass(''))) {
                 var openList = bfs(neighboursList, this.id);
                 for(var i = 0; i < openList.length; i++) {
